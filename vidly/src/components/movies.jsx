@@ -1,37 +1,77 @@
 import React, { Component } from "react";
 import { getMovies } from "../services/fakeMovieService";
-import Like from "./like";
-import Pagniation from "./pagination";
+import Like from "./common/like";
+import Pagniation from "./common/pagination";
+import Genre from "./genre";
+import { getGenres } from "../services/fakeGenreService";
+import MoviesTable from "./moviesTable";
 
 class Movies extends Component {
+  allGenres;
   constructor(props) {
     super(props);
+    this.allGenres = { _id: 121212, name: "All Genres" };
     this.state = {
-      movies: getMovies(),
+      movies: [],
+      genres: [],
+      selectedGenre: this.allGenres,
+      sortColumn: {path: 'title', order: 'asc'},
       currentPage: 1,
-      pageSize: 4
+      pageSize: 4,
     };
   }
 
+  componentDidMount() {
+    const genres = [this.allGenres, ...getGenres()];
+    this.setState({ movies: getMovies(), genres });
+  }
+
   render() {
-    const { movies: allMovies, pageSize, currentPage } = this.state;
-    const movies = [...allMovies].splice((currentPage-1) * pageSize,pageSize);
+    const {
+      movies: allMovies,
+      pageSize,
+      currentPage,
+      selectedGenre,
+      sortColumn,
+      genres
+    } = this.state;
+
+    let filterMovies =
+      selectedGenre && selectedGenre._id !== this.allGenres._id
+        ? [...allMovies].filter(movie => movie.genre._id === selectedGenre._id)
+        : [...allMovies];
+
+    const sorted = this.sort(filterMovies, sortColumn);
+
+    const pagedMovies = [...sorted].splice(
+      (currentPage - 1) * pageSize,
+      pageSize
+    );
+
+    console.log("All movies", filterMovies);
     return (
       <React.Fragment>
-        <p>{this.getMovieTitleMessage()}</p>
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Genre</th>
-              <th>Stock</th>
-              <th>Rate</th>
-            </tr>
-          </thead>
-          <tbody>{this.getMoviesList(movies)}</tbody>
-        </table>
+        <p>{this.getMovieTitleMessage(filterMovies)}</p>
+        <div className="row">
+          <div className="col-3">
+            <Genre
+              items={genres}
+              selectedItem={selectedGenre}
+              onSelectItem={this.handleGenreSelect}
+            />
+          </div>
+          <div className="col-9">
+            <MoviesTable
+              movies={pagedMovies}
+              sortColumn={sortColumn}
+              onHandleLike={this.handleLike}
+              onDeleteMovies={this.deleteMovie}
+              onSort={this.sortMovie}
+            />
+          </div>
+        </div>
         <Pagniation
-          itemCount={allMovies.length}
+          itemCount={filterMovies.length}
           pageSize={pageSize}
           currentPage={currentPage}
           onPageChange={this.handlePageChange}
@@ -40,42 +80,27 @@ class Movies extends Component {
     );
   }
 
-  handlePageChange = page => {
-    const {pageSize, movies: allMovies} = this.state;
-    // const startIndex = (page - 1) * pageSize;
-    // console.log("Start index", startIndex);
-    // const movies = [...allMovies].splice(startIndex, pageSize);
-    // console.log("Movie list - ", allMovies);
-    this.setState({currentPage: page });
+  handleGenreSelect = genre => {
+    this.setState({ selectedGenre: genre, currentPage: 1 });
   };
-  getMovieTitleMessage() {
-    return this.state.movies.length === 0
-      ? "No Movies Left in the stock"
-      : `Movies remaining in the stock ${this.state.movies.length + 1}`;
+
+  handlePageChange = page => {
+    // const { pageSize, movies: allMovies } = this.state;
+    this.setState({ currentPage: page });
+  };
+
+  sort(filterMovies, sortColumn) {
+    return [...filterMovies].sort((m1, m2) => {
+      return sortColumn.order === 'asc' ?
+        m1[sortColumn.path] > m2[sortColumn.path] ? 1 : -1
+        : m1[sortColumn.path] < m2[sortColumn.path] ? 1 : -1;
+    });
   }
 
-  getMoviesList(movies) {
-    return movies.map(movie => {
-      return (
-        <tr key={movie._id}>
-          <td>{movie.title}</td>
-          <td>{movie.genre.name}</td>
-          <td>{movie.numberInStock}</td>
-          <td>{movie.dailyRentalRate}</td>
-          <td>
-            <Like like={movie.like} onLike={() => this.handleLike(movie)} />
-          </td>
-          <td>
-            <button
-              className="btn btn-danger"
-              onClick={() => this.deleteMovie(movie._id)}
-            >
-              Delete
-            </button>
-          </td>
-        </tr>
-      );
-    });
+  getMovieTitleMessage(movies) {
+    return movies.length === 0
+      ? "No Movies Left in the stock"
+      : `Movies remaining in the stock ${movies.length + 1}`;
   }
 
   handleLike = movie => {
@@ -93,6 +118,10 @@ class Movies extends Component {
     movies.splice(index, 1);
     this.setState({ movies });
   };
+
+  sortMovie = sortColumn => {
+    this.setState({sortColumn})
+  }
 } // End of component
 
 export default Movies;

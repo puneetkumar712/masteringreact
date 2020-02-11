@@ -1,7 +1,7 @@
 import React, { Component } from "react";
-
+import PropTypes from 'prop-types'
 const Pagination = (props) => {
-    const {pageSize, itemCount, currentPage} = props;
+    const {pageSize, itemCount, currentPage, onPageChange} = props;
     const pageCount = Math.ceil(itemCount / pageSize);
     console.log('page count - ', pageCount);
     if(pageCount === 1) return null;
@@ -13,7 +13,7 @@ const Pagination = (props) => {
             {pages.map(page => {
                 return (
                 <li key={page} className={page === currentPage? "page-item active": "page-item"}>
-                <a className="page-link" href="#" onClick={()=> props.onPageChange(page)}>
+                <a className="page-link" href="#" onClick={()=> onPageChange(page)}>
                   {page}
                 </a>
               </li>
@@ -23,7 +23,14 @@ const Pagination = (props) => {
       </nav>
      );
 }
- 
+
+Pagination.propTypes = {
+  pageSize : PropTypes.number.isRequired,
+  itemCount: PropTypes.number.isRequired,
+  currentPage: PropTypes.number.isRequired,
+  onPageChange: PropTypes.func.isRequired
+}
+
 export default Pagination;
 
 function range(pageCount) {
