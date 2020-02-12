@@ -2,41 +2,53 @@ import React, { Component } from "react";
 import Like from "./common/like";
 import TableHeader from "./common/tableHeader";
 import TableBody from "./common/tableBody";
+import Table from "./common/table";
 
 class MoviesTable extends Component {
-  tableColumns = [
+  columns = [
     { path: "title", label: "Title" },
     { path: "genre.name", label: "Genre" },
     { path: "numberInStock", label: "Stock" },
     { path: "dailyRentalRate", label: "Rate" },
-    { path: "like" },
-    { path: "delete" }
+    {
+      path: "like",
+      content: data => (
+        <Like like={data.like} onLike={() => this.props.onHandleLike(data)} />
+      )
+    },
+    {
+      path: "delete",
+      content: data => (
+        <button
+          className="btn btn-danger"
+          onClick={() => this.props.onDeleteMovies(data._id)}
+        >
+          Delete
+        </button>
+      )
+    }
   ];
-  constructor(props) {
-    super(props);
-  }
 
   render() {
-    const {
-      movies,
-      onHandleLike,
-      onDeleteMovies,
-      onSort,
-      sortColumn
-    } = this.props;
+    const { movies, onSort, sortColumn } = this.props;
     return (
-      <table className="table">
-        <TableHeader
-          columns={this.tableColumns}
-          onSort={onSort}
-          sortColumn={sortColumn}
-        />
-        <TableBody
-          tableData={movies}
-          onHandleLike={onHandleLike}
-          onDeleteMovies={onDeleteMovies}
-        />
-      </table>
+      <Table
+        data={movies}
+        columns={this.columns}
+        sortColumn={sortColumn}
+        onSort={onSort}
+      />
+      // <table className="table">
+      //   <TableHeader
+      //     columns={this.columns}
+      //     onSort={onSort}
+      //     sortColumn={sortColumn}
+      //   />
+      //   <TableBody
+      //     tableData={movies}
+      //     columns={this.columns}
+      //   />
+      // </table>
     );
   }
 }

@@ -1,24 +1,32 @@
 import React, { Component } from "react";
 
 class TableHeader extends Component {
-  constructor(props) {
-    super(props);
-  }
-
   render() {
     const { columns } = this.props;
     return (
       <thead>
         <tr>
           {columns.map(column => (
-            <th key={column.path} onClick={() => this.raiseSort(column.path)}>
-              {column.label}
+            <th
+              className="clickable"
+              key={column.path}
+              onClick={() => this.raiseSort(column.path)}
+            >
+              {column.label} {this.renderSortIcon(column)}
             </th>
           ))}
         </tr>
       </thead>
     );
   }
+
+  renderSortIcon = column => {
+    const { sortColumn } = this.props;
+    if (column.path !== sortColumn.path) return null;
+
+    if (sortColumn.order === "asc") return <i className="fa fa-sort-asc"></i>;
+    return <i className="fa fa-sort-desc"></i>;
+  };
 
   raiseSort = path => {
     let { sortColumn, onSort } = this.props;

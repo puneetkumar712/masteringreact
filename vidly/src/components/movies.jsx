@@ -1,6 +1,5 @@
 import React, { Component } from "react";
 import { getMovies } from "../services/fakeMovieService";
-import Like from "./common/like";
 import Pagniation from "./common/pagination";
 import Genre from "./genre";
 import { getGenres } from "../services/fakeGenreService";
@@ -48,7 +47,6 @@ class Movies extends Component {
       pageSize
     );
 
-    console.log("All movies", filterMovies);
     return (
       <React.Fragment>
         <p>{this.getMovieTitleMessage(filterMovies)}</p>
@@ -91,11 +89,20 @@ class Movies extends Component {
 
   sort(filterMovies, sortColumn) {
     return [...filterMovies].sort((m1, m2) => {
+      const data1 = this.getData(m1, sortColumn.path)
+      const data2 = this.getData(m2, sortColumn.path)
       return sortColumn.order === 'asc' ?
-        m1[sortColumn.path] > m2[sortColumn.path] ? 1 : -1
-        : m1[sortColumn.path] < m2[sortColumn.path] ? 1 : -1;
+               data1 > data2 ? 1 : -1
+                  : data1 < data2 ? 1 : -1;
     });
   }
+
+  getData = (item, column) => {
+    const columns = column.split(".");
+    return columns.reduce((acc, curr) => {
+      return acc[curr];
+    }, item);
+  };
 
   getMovieTitleMessage(movies) {
     return movies.length === 0
