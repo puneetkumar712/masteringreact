@@ -14,9 +14,9 @@ class Movies extends Component {
       movies: [],
       genres: [],
       selectedGenre: this.allGenres,
-      sortColumn: {path: 'title', order: 'asc'},
+      sortColumn: { path: "title", order: "asc" },
       currentPage: 1,
-      pageSize: 4,
+      pageSize: 4
     };
   }
 
@@ -25,14 +25,13 @@ class Movies extends Component {
     this.setState({ movies: getMovies(), genres });
   }
 
-  render() {
+  getPagedData() {
     const {
       movies: allMovies,
       pageSize,
       currentPage,
       selectedGenre,
-      sortColumn,
-      genres
+      sortColumn
     } = this.state;
 
     let filterMovies =
@@ -42,14 +41,25 @@ class Movies extends Component {
 
     const sorted = this.sort(filterMovies, sortColumn);
 
-    const pagedMovies = [...sorted].splice(
-      (currentPage - 1) * pageSize,
-      pageSize
-    );
+    const movies = [...sorted].splice((currentPage - 1) * pageSize, pageSize);
+
+    return { totalCount: filterMovies.length, movies };
+  }
+
+  render() {
+    const {
+      pageSize,
+      currentPage,
+      selectedGenre,
+      sortColumn,
+      genres
+    } = this.state;
+
+    const { totalCount, movies } = this.getPagedData();
 
     return (
       <React.Fragment>
-        <p>{this.getMovieTitleMessage(filterMovies)}</p>
+        <p>{this.getMovieTitleMessage(totalCount)}</p>
         <div className="row">
           <div className="col-3">
             <Genre
@@ -60,7 +70,7 @@ class Movies extends Component {
           </div>
           <div className="col-9">
             <MoviesTable
-              movies={pagedMovies}
+              movies={movies}
               sortColumn={sortColumn}
               onHandleLike={this.handleLike}
               onDeleteMovies={this.deleteMovie}
@@ -69,7 +79,7 @@ class Movies extends Component {
           </div>
         </div>
         <Pagniation
-          itemCount={filterMovies.length}
+          itemCount={totalCount}
           pageSize={pageSize}
           currentPage={currentPage}
           onPageChange={this.handlePageChange}
@@ -89,11 +99,15 @@ class Movies extends Component {
 
   sort(filterMovies, sortColumn) {
     return [...filterMovies].sort((m1, m2) => {
-      const data1 = this.getData(m1, sortColumn.path)
-      const data2 = this.getData(m2, sortColumn.path)
-      return sortColumn.order === 'asc' ?
-               data1 > data2 ? 1 : -1
-                  : data1 < data2 ? 1 : -1;
+      const data1 = this.getData(m1, sortColumn.path);
+      const data2 = this.getData(m2, sortColumn.path);
+      return sortColumn.order === "asc"
+        ? data1 > data2
+          ? 1
+          : -1
+        : data1 < data2
+        ? 1
+        : -1;
     });
   }
 
@@ -104,10 +118,10 @@ class Movies extends Component {
     }, item);
   };
 
-  getMovieTitleMessage(movies) {
-    return movies.length === 0
+  getMovieTitleMessage(totalMovies) {
+    return totalMovies === 0
       ? "No Movies Left in the stock"
-      : `Movies remaining in the stock ${movies.length + 1}`;
+      : `Movies remaining in the stock ${totalMovies + 1}`;
   }
 
   handleLike = movie => {
@@ -127,8 +141,8 @@ class Movies extends Component {
   };
 
   sortMovie = sortColumn => {
-    this.setState({sortColumn})
-  }
+    this.setState({ sortColumn });
+  };
 } // End of component
 
 export default Movies;

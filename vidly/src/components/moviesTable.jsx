@@ -38,17 +38,6 @@ class MoviesTable extends Component {
         sortColumn={sortColumn}
         onSort={onSort}
       />
-      // <table className="table">
-      //   <TableHeader
-      //     columns={this.columns}
-      //     onSort={onSort}
-      //     sortColumn={sortColumn}
-      //   />
-      //   <TableBody
-      //     tableData={movies}
-      //     columns={this.columns}
-      //   />
-      // </table>
     );
   }
 }
