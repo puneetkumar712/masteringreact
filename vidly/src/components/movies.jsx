@@ -69,6 +69,13 @@ class Movies extends Component {
             />
           </div>
           <div className="col-9">
+            <button
+              className="btn btn-primary"
+              onClick={() => this.props.history.push("/movies/new")}
+            >
+              New Movie
+            </button>
+
             <MoviesTable
               movies={movies}
               sortColumn={sortColumn}
