@@ -1,30 +1,54 @@
 import React, { Component } from "react";
 import Form from "./common/form";
 import Joi from "joi-browser";
+import { saveMovie, getMovie } from "../services/fakeMovieService";
+import { getGenres } from "../services/fakeGenreService";
 
 class MoviesForm extends Form {
   schema = {
+    _id: Joi.string(),
+
     title: Joi.string()
       .required()
       .label("Title"),
 
-    genre: Joi.string()
+      genreId: Joi.string()
       .required()
       .label("Genre"),
 
-    stock: Joi.number()
+    numberInStock: Joi.number()
       .integer()
       .required()
       .min(0)
       .max(100)
       .label("Number in Stock"),
 
-    rate: Joi.number()
+    dailyRentalRate: Joi.number()
       .required()
       .min(0)
       .max(10)
       .label("Daily rental rate")
   };
+  genres;
+  constructor() {
+    super();
+    this.genres = getGenres();
+  }
+
+  componentDidMount() {
+    const { id } = this.props.match.params;
+    if (id === "new") return;
+    const movie = getMovie(id);
+    if(movie){
+      console.log("Test dataaaa", movie);
+      const {genre, ...dbMovie} = movie;
+      const data = {...dbMovie, genreId: genre._id}
+      this.setState({ data });
+    }else {
+      return this.props.history.replace("/not-found");
+    }
+  }
+
   render() {
     const { params } = this.props.match;
     const { data } = this.state;
@@ -40,16 +64,18 @@ class MoviesForm extends Form {
               className="form-control"
               id="genre"
               onChange={this.handleChange}
-              name="genre"
-              value={data.genre}
+              name="genreId"
+              value={data.genreId}
             >
-              <option value="action">Action</option>
-              <option value="comedy">Comedy</option>
-              <option value="thriller">Thriller</option>
+              {this.genres.map(genre => (
+                <option key={genre._id} value={genre._id}>
+                  {genre.name}
+                </option>
+              ))}
             </select>
           </div>
-          {this.renderInput("stock", "Number in Stock")}
-          {this.renderInput("rate", "Rate")}
+          {this.renderInput("numberInStock", "Number in Stock")}
+          {this.renderInput("dailyRentalRate", "Rate")}
           {this.renderButton("Save")}
         </form>
       </div>
@@ -60,22 +86,12 @@ class MoviesForm extends Form {
     console.log("Movies Form submitted");
     const { onMovieSave } = this.props;
 
-    const { title, genre, stock:numberInStock, rate:dailyRentalRate } = this.state.data;
+    // const { title, genre, numberInStock, dailyRentalRate, _id} = this.state.data;
     const movie = {
-      _id: Date.now(),
-      title,
-      genre: { _id: Date.now(), name: genre },
-      numberInStock,
-      dailyRentalRate,
-      publishDate: new Date().toISOString()
-    };
-    // onMovieSave(movie);
+      ...this.state.data};
+    saveMovie(movie);
     this.props.history.push("/movies");
   };
-
-  // handleSave = () => {
-  //   this.props.history.push("/movies");
-  // };
 }
 
 export default MoviesForm;

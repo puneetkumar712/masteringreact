@@ -4,6 +4,8 @@ import Pagniation from "./common/pagination";
 import Genre from "./genre";
 import { getGenres } from "../services/fakeGenreService";
 import MoviesTable from "./moviesTable";
+import Input from "./common/input";
+import SearchBox from "./common/searchBox";
 
 class Movies extends Component {
   allGenres;
@@ -16,7 +18,8 @@ class Movies extends Component {
       selectedGenre: this.allGenres,
       sortColumn: { path: "title", order: "asc" },
       currentPage: 1,
-      pageSize: 4
+      pageSize: 4,
+      searchQuery: ""
     };
   }
 
@@ -31,11 +34,14 @@ class Movies extends Component {
       pageSize,
       currentPage,
       selectedGenre,
-      sortColumn
+      sortColumn,
+      searchQuery
     } = this.state;
 
     let filterMovies =
-      selectedGenre && selectedGenre._id !== this.allGenres._id
+    searchQuery !== ""
+        ? allMovies.filter(movie => movie.title.toLowerCase().includes(searchQuery.toLowerCase()))
+        : selectedGenre && selectedGenre._id !== this.allGenres._id
         ? [...allMovies].filter(movie => movie.genre._id === selectedGenre._id)
         : [...allMovies];
 
@@ -52,14 +58,14 @@ class Movies extends Component {
       currentPage,
       selectedGenre,
       sortColumn,
-      genres
+      genres,
+      searchQuery
     } = this.state;
 
     const { totalCount, movies } = this.getPagedData();
 
     return (
       <React.Fragment>
-        <p>{this.getMovieTitleMessage(totalCount)}</p>
         <div className="row">
           <div className="col-3">
             <Genre
@@ -75,7 +81,11 @@ class Movies extends Component {
             >
               New Movie
             </button>
-
+            <p>{this.getMovieTitleMessage(totalCount)}</p>
+            <SearchBox
+              value={searchQuery}
+              onChange={this.handleSearch}
+            />
             <MoviesTable
               movies={movies}
               sortColumn={sortColumn}
@@ -95,8 +105,14 @@ class Movies extends Component {
     );
   }
 
+  handleSearch = searchQuery => {
+    // const searchMovie = currentTarget.value;
+    // console.log('Movie name', movies)
+    this.setState({ searchQuery, selectedGenre: this.allGenres });
+  };
+
   handleGenreSelect = genre => {
-    this.setState({ selectedGenre: genre, currentPage: 1 });
+    this.setState({ selectedGenre: genre, currentPage: 1, searchQuery: ""});
   };
 
   handlePageChange = page => {
@@ -128,7 +144,7 @@ class Movies extends Component {
   getMovieTitleMessage(totalMovies) {
     return totalMovies === 0
       ? "No Movies Left in the stock"
-      : `Movies remaining in the stock ${totalMovies + 1}`;
+      : `Showing ${totalMovies + 1} movies in the database`;
   }
 
   handleLike = movie => {
